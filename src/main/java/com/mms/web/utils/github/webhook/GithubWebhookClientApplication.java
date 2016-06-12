@@ -1,12 +1,12 @@
 package com.mms.web.utils.github.webhook;
 
 import java.io.File;
-import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.codec.digest.HmacUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @SpringBootApplication
 public class GithubWebhookClientApplication {
 	
+	@Value("${application.version}")
+	private String appVersion;
+	
 	private String secretKey;
 	
 	private String baseTriggerPath;
@@ -31,9 +34,16 @@ public class GithubWebhookClientApplication {
 	private String publishMessageHint;
 	
 	public GithubWebhookClientApplication(){
-		secretKey = System.getenv("GHSecretKey");
+		this(System.getenv("GHSecretKey"),System.getenv("GHClientTriggerPath"));
+	}
+	
+	public GithubWebhookClientApplication(String key){
+		this(key,System.getenv("GHClientTriggerPath"));
+	}
+	public GithubWebhookClientApplication(String key, String triggerPath){
+		secretKey = key;
 		Objects.requireNonNull(secretKey, "Github Secret Key is required");
-		baseTriggerPath = System.getenv("GHClientTriggerPath");
+		baseTriggerPath = triggerPath;
 	}
 
 	@RequestMapping(path="/util/github-webhook-client", method=RequestMethod.POST)
@@ -82,7 +92,7 @@ public class GithubWebhookClientApplication {
 				e.printStackTrace();
 				StringBuilder response = new StringBuilder();
 				response.append("Unable to parse response.");
-				return new ResponseEntity<>(response.toString(), headers, HttpStatus.OK);
+				return new ResponseEntity<>(response.toString(), headers, HttpStatus.BAD_REQUEST);
 			}
 		}
 		
@@ -90,6 +100,7 @@ public class GithubWebhookClientApplication {
 		StringBuilder response = new StringBuilder();
 		response.append("Signature Verified.");
 		response.append(String.format("Received %d bytes.", bytes));
+		response.append(String.format("Github Webhook client version - %s.", appVersion));
 		return new ResponseEntity<>(response.toString(), headers, HttpStatus.OK);
 	}
 	
