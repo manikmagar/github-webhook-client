@@ -41,6 +41,8 @@ public class GithubWebhookClientApplication {
 		this(key,System.getenv("GHClientTriggerPath"));
 	}
 	public GithubWebhookClientApplication(String key, String triggerPath){
+		System.out.println(System.getenv("GHSecretKey"));
+		System.out.println(key);
 		secretKey = key;
 		Objects.requireNonNull(secretKey, "Github Secret Key is required");
 		baseTriggerPath = triggerPath;
