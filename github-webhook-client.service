@@ -6,6 +6,8 @@ After=syslog.target
 User=nobody
 ExecStart=/svr/github-webhook-client/github-webhook-client.jar
 SuccessExitStatus=143
+EnvironmentFile=/etc/default/github-webhook-client
+
 
 [Install]
 WantedBy=multi-user.target
