@@ -8,9 +8,12 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+
 public class GithubWebhookClientApplicationTest {
 	
 	private GithubWebhookClientApplication webhookClient;
+	
+	private final String GITHUB_USER_AGENT_DUMMY ="GitHub-Hookshot/1234";
 
 	private String testPayload = "{" +
 								    "\"head_commit\": {" +
@@ -26,24 +29,32 @@ public class GithubWebhookClientApplicationTest {
 	@Before
 	public void setUpBefore() throws Exception {
 		webhookClient = new GithubWebhookClientApplication("GitSecret");
+		webhookClient.setGithubUserAgentPrefix(GITHUB_USER_AGENT_DUMMY);
 	}
 
 	@Test
 	public void testResponseValid() {
-		ResponseEntity<String> entity = webhookClient.handle(signature, testPayload);
+		ResponseEntity<String> entity = webhookClient.handle(signature, testPayload, GITHUB_USER_AGENT_DUMMY);
 		assertThat(entity.getStatusCode(), IsEqual.equalTo(HttpStatus.OK));
 	}
 	
 	@Test
 	public void testResponseInvalidSignature() {
-		ResponseEntity<String> entity = webhookClient.handle("wrong-signature", testPayload);
+		ResponseEntity<String> entity = webhookClient.handle("wrong-signature", testPayload,GITHUB_USER_AGENT_DUMMY);
 		assertThat(entity.getStatusCode(), IsEqual.equalTo(HttpStatus.UNAUTHORIZED));
 	}
 	
 	@Test
 	public void testResponseInvalidJSONPayload() {
 		webhookClient = new GithubWebhookClientApplication("GitSecret","/tmp");
-		ResponseEntity<String> entity = webhookClient.handle("sha1=3c1d14852e9be18b2aca3d8973dc6caec246f169", "Invalid formatted payload");
+		webhookClient.setGithubUserAgentPrefix(GITHUB_USER_AGENT_DUMMY);
+		ResponseEntity<String> entity = webhookClient.handle("sha1=3c1d14852e9be18b2aca3d8973dc6caec246f169", "Invalid formatted payload",GITHUB_USER_AGENT_DUMMY);
+		assertThat(entity.getStatusCode(), IsEqual.equalTo(HttpStatus.BAD_REQUEST));
+	}
+	
+	@Test
+	public void testInvalidUserAgent(){
+		ResponseEntity<String> entity = webhookClient.handle("sha1=3c1d14852e9be18b2aca3d8973dc6caec246f169", "Invalid formatted payload","INVALID_USER_AGENT");
 		assertThat(entity.getStatusCode(), IsEqual.equalTo(HttpStatus.BAD_REQUEST));
 	}
 

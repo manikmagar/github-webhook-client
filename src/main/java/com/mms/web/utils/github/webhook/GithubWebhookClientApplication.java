@@ -27,11 +27,18 @@ public class GithubWebhookClientApplication {
 	@Value("${application.version}")
 	private String appVersion;
 	
+	@Value("${github.user.agent.prefix}")
+	private String githubUserAgentPrefix;
+	
 	private String secretKey;
 	
 	private String baseTriggerPath;
 	
 	private String publishMessageHint;
+	
+	public void setGithubUserAgentPrefix(String prefix){
+		this.githubUserAgentPrefix =prefix;
+	}
 	
 	public GithubWebhookClientApplication(){
 		this(System.getenv("GHSecretKey"),System.getenv("GHClientTriggerPath"));
@@ -41,8 +48,6 @@ public class GithubWebhookClientApplication {
 		this(key,System.getenv("GHClientTriggerPath"));
 	}
 	public GithubWebhookClientApplication(String key, String triggerPath){
-		System.out.println(System.getenv("GHSecretKey"));
-		System.out.println(key);
 		secretKey = key;
 		Objects.requireNonNull(secretKey, "Github Secret Key is required");
 		baseTriggerPath = triggerPath;
@@ -50,11 +55,15 @@ public class GithubWebhookClientApplication {
 
 	@RequestMapping(path="/util/github-webhook-client", method=RequestMethod.POST)
 	public ResponseEntity<String> handle(@RequestHeader("X-Hub-Signature") String signature,
-			@RequestBody String payload) {
+			@RequestBody String payload, @RequestHeader("User-Agent") String userAgent) {
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("X-Webhook-Version", "1.0");
+		headers.add("X-Github-Webhook-Client-Version", appVersion);
 
+		if(Objects.isNull(userAgent) || !userAgent.startsWith(githubUserAgentPrefix)){
+			return new ResponseEntity<>("Invalid request.", headers, HttpStatus.BAD_REQUEST);
+		}
+		
 		if (signature == null) {
 			return new ResponseEntity<>("No signature given.", headers, HttpStatus.BAD_REQUEST);
 		}
