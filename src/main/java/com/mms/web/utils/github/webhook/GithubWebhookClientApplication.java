@@ -39,6 +39,7 @@ public class GithubWebhookClientApplication {
 	
 	private String secretKey;
 	
+	@Value("${github.publish.message.hint}")
 	private String publishMessageHint;
 	
 	public void setGithubUserAgentPrefix(String prefix){
