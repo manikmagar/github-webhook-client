@@ -6,9 +6,12 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.codec.digest.HmacUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +23,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@EnableAutoConfiguration
 @Controller
 @SpringBootApplication
 public class GithubWebhookClientApplication {
+	
+	@Autowired
+	private Environment env;
 	
 	@Value("${application.version}")
 	private String appVersion;
@@ -32,8 +39,6 @@ public class GithubWebhookClientApplication {
 	
 	private String secretKey;
 	
-	private String baseTriggerPath;
-	
 	private String publishMessageHint;
 	
 	public void setGithubUserAgentPrefix(String prefix){
@@ -41,18 +46,14 @@ public class GithubWebhookClientApplication {
 	}
 	
 	public GithubWebhookClientApplication(){
-		this(System.getenv("GHSecretKey"),System.getenv("GHClientTriggerPath"));
+		this(System.getenv("GHSecretKey"));
 	}
 	
 	public GithubWebhookClientApplication(String key){
-		this(key,System.getenv("GHClientTriggerPath"));
-	}
-	public GithubWebhookClientApplication(String key, String triggerPath){
 		secretKey = key;
 		Objects.requireNonNull(secretKey, "Github Secret Key is required");
-		baseTriggerPath = triggerPath;
 	}
-
+	
 	@RequestMapping(path="/util/github-webhook-client", method=RequestMethod.POST)
 	public ResponseEntity<String> handle(@RequestHeader("X-Hub-Signature") String signature,
 			@RequestBody String payload, @RequestHeader("User-Agent") String userAgent) {
@@ -73,39 +74,42 @@ public class GithubWebhookClientApplication {
 		if (!MessageDigest.isEqual(signature.getBytes(), computed.getBytes())) {
 			return new ResponseEntity<>("Invalid signature.", headers, HttpStatus.UNAUTHORIZED);
 		}
-		
-		if(!Objects.isNull(baseTriggerPath) && !baseTriggerPath.isEmpty()){
 			
-			Map<?,?> repo=null;
-	
-			try {
-				Map<?, ?> payloadMap = new ObjectMapper().readValue(payload, Map.class);
-				repo = (Map<?, ?>) payloadMap.get("repository");
-				String repoName = (String)repo.get("full_name");
-				
-				if(!Objects.isNull(publishMessageHint) && !publishMessageHint.isEmpty()) {
-					//Publish Message hint is configured. Create trigger file if commit message has this hint.
-				
-					if(payloadMap.containsKey("head_commit")){
-						String message = (String) ((Map<?,?>)payloadMap.get("head_commit")).get("message");
-						if(!Objects.isNull(message) && !message.isEmpty() && message.contains(publishMessageHint)){
-							createTriggerFile(repoName);
-						} else {
-							System.out.println("Publish Message hint not found in message, not creating trigger file");
+		Map<?,?> repo=null;
+
+		try {
+			Map<?, ?> payloadMap = new ObjectMapper().readValue(payload, Map.class);
+			repo = (Map<?, ?>) payloadMap.get("repository");
+			String repoName = (String)repo.get("full_name");
+			
+			String repoKey = "REPO_" + repoName.replace("/", "_").toUpperCase() + "_SHELL";
+			//If we environment is set
+			if (Objects.nonNull(env)){
+				String shellPath = env.getProperty(repoKey);
+				if(shellPath != null && new File(shellPath).exists()) {
+					if(!Objects.isNull(publishMessageHint) && !publishMessageHint.isEmpty()) {
+						if(payloadMap.containsKey("head_commit")){
+							String message = (String) ((Map<?,?>)payloadMap.get("head_commit")).get("message");
+							if(!Objects.isNull(message) && !message.isEmpty() && message.contains(publishMessageHint)){
+								callShellScript(repoName);
+							} else {
+								System.out.println("Publish Message hint not found in message, not creating trigger file");
+							}
 						}
+					} else {
+						System.out.println("Publish Message hint is not specified. Call shell script");
+						callShellScript(repoName);
 					}
-				} else {
-					System.out.println("Publish Message hint is not specified. Creating trigger file");
-					createTriggerFile(repoName);
 				}
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				StringBuilder response = new StringBuilder();
-				response.append("Unable to parse response.");
-				return new ResponseEntity<>(response.toString(), headers, HttpStatus.BAD_REQUEST);
 			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringBuilder response = new StringBuilder();
+			response.append("Unable to parse response.");
+			return new ResponseEntity<>(response.toString(), headers, HttpStatus.BAD_REQUEST);
 		}
+		
 		
 		int bytes = payload.getBytes().length;
 		StringBuilder response = new StringBuilder();
@@ -115,14 +119,8 @@ public class GithubWebhookClientApplication {
 		return new ResponseEntity<>(response.toString(), headers, HttpStatus.OK);
 	}
 	
-	public void createTriggerFile(String repoName) throws Exception{
-		String targetTrigger = baseTriggerPath + "/" + repoName;
-		System.out.println("Creating new trigger folder -"+ targetTrigger);
-		File folder = new File(targetTrigger);
-		folder.mkdirs();
-		File trigger = new File(targetTrigger + "/pushtrigger_"+ System.currentTimeMillis() +".txt");
-		if(trigger.exists()) trigger.delete();
-		trigger.createNewFile();
+	public void callShellScript(String repoName) throws Exception{
+		ShellScriptUtil.executeScript("/home/mmson/gitsync/manik.magar.me/post-receive.sh");
 	}
 
 	public static void main(String[] args) {

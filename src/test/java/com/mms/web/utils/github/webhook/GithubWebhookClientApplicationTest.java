@@ -46,8 +46,6 @@ public class GithubWebhookClientApplicationTest {
 	
 	@Test
 	public void testResponseInvalidJSONPayload() {
-		webhookClient = new GithubWebhookClientApplication("GitSecret","/tmp");
-		webhookClient.setGithubUserAgentPrefix(GITHUB_USER_AGENT_DUMMY);
 		ResponseEntity<String> entity = webhookClient.handle("sha1=3c1d14852e9be18b2aca3d8973dc6caec246f169", "Invalid formatted payload",GITHUB_USER_AGENT_DUMMY);
 		assertThat(entity.getStatusCode(), IsEqual.equalTo(HttpStatus.BAD_REQUEST));
 	}
