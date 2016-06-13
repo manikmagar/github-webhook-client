@@ -21,7 +21,7 @@ sudo cp github-webhook-client.conf /etc/init/
 init-checkconf /etc/init/github-webhook-client.conf
 echo "GHSecretKey=$(date +%s | sha256sum | base64 | head -c 32 ; echo)" | sudo tee /etc/default/github-webhook-client
 #To enable writing a trigger file, set the trigger base path. Whenever github will call the webhook a trigger file with repo #full name will be written.
-sudo "GHClientTriggerPath="~/gitsync/triggerbase" | sudo tee -a /etc/default/github-webhook-client
+echo "GHClientTriggerPath=~/gitsync/triggerbase" | sudo tee -a /etc/default/github-webhook-client
 sudo service github-webhook-client start
 ```
 
@@ -35,6 +35,6 @@ sudo chmod +x github-webhook-client.service
 sudo systemctl enable github-webhook-client.service
 echo "GHSecretKey=$(date +%s | sha256sum | base64 | head -c 32 ; echo)" | sudo tee /etc/default/github-webhook-client
 #To enable writing a trigger file, set the trigger base path. Whenever github will call the webhook a trigger file with repo #full name will be written.
-sudo "GHClientTriggerPath="~/gitsync/triggerbase" | sudo tee -a /etc/default/github-webhook-client
+echo "GHClientTriggerPath=~/gitsync/triggerbase" | sudo tee -a /etc/default/github-webhook-client
 sudo systemctl start github-webhook-client.service
 ```
