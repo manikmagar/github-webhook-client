@@ -1,8 +1,3 @@
-if [ -f pid.txt ]
-then
-	kill `cat pid.txt`
-	rm pid.txt
-fi
 set -a
 . /etc/default/github-webhook-client
 
