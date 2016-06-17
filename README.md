@@ -3,6 +3,8 @@ This is a GitHub Webhook client based on Spring Boot application framework. This
 
 ***I am still working on final version of instructions.*
 
+[![CircleCI](https://circleci.com/gh/manikmagar/github-webhook-client.svg?style=shield&circle-token=6cecc228ed9da14bf4faa962b338dbb3c38d285d)](https://circleci.com/gh/manikmagar/github-webhook-client)
+
 # Prerequisite
 - Java Runtime and JAVA_HOME is properly set.
 - Maven is installed on your box (Check [sdkman.io](http://sdkman.io) for installing frameworks easily).
