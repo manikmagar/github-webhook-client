@@ -11,6 +11,33 @@
 	<name>github-webhook-client</name>
 	<description>Github Webhook Client</description>
 
+	<developers>
+        <developer>
+            <id>manikmagar</id>
+            <name>Manik Magar</name>
+            <email>manik.magar@gmail.com</email>
+            <url>http://manik.magar.cme</url>
+            <timezone>0</timezone>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/manikmagar/github-webhook-client/</url>
+        <connection>scm:git:git@github.com:manikmagar/github-webhook-client.git</connection>
+        <developerConnection>scm:git:https://github.com/manikmagar/github-webhook-client.git</developerConnection>
+    </scm>
+
+    <issueManagement>
+        <url>https://github.com/manikmagar/github-webhook-client/issues</url>
+    </issueManagement>
+
+	<licenses>
+        <license>
+            <name>The MIT License (MIT)</name>
+            <url>http://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
