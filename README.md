@@ -54,4 +54,4 @@ For a sample repo of manikmagar/test, entry should look like below (you can have
 REPO_MANIKMAGAR_TEST_SHELL=/tmp/myshell.sh
 
 # License
-You guess'ed it right, its FREE under MIT License.
+You guess'ed it right, its FREE under [MIT License](license.md).
