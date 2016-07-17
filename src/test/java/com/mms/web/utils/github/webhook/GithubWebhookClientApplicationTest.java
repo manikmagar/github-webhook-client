@@ -39,6 +39,12 @@ public class GithubWebhookClientApplicationTest {
 	}
 	
 	@Test
+	public void testShellCall() {
+		ResponseEntity<String> entity = webhookClient.handle(signature, testPayload, GITHUB_USER_AGENT_DUMMY);
+		assertThat(entity.getStatusCode(), IsEqual.equalTo(HttpStatus.OK));
+	}
+	
+	@Test
 	public void testResponseInvalidSignature() {
 		ResponseEntity<String> entity = webhookClient.handle("wrong-signature", testPayload,GITHUB_USER_AGENT_DUMMY);
 		assertThat(entity.getStatusCode(), IsEqual.equalTo(HttpStatus.UNAUTHORIZED));

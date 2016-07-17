@@ -92,14 +92,14 @@ public class GithubWebhookClientApplication {
 						if(payloadMap.containsKey("head_commit")){
 							String message = (String) ((Map<?,?>)payloadMap.get("head_commit")).get("message");
 							if(!Objects.isNull(message) && !message.isEmpty() && message.contains(publishMessageHint)){
-								callShellScript(repoName);
+								callShellScript(shellPath);
 							} else {
 								System.out.println("Publish Message hint not found in message, not creating trigger file");
 							}
 						}
 					} else {
 						System.out.println("Publish Message hint is not specified. Call shell script");
-						callShellScript(repoName);
+						callShellScript(shellPath);
 					}
 				}
 			}
@@ -120,8 +120,8 @@ public class GithubWebhookClientApplication {
 		return new ResponseEntity<>(response.toString(), headers, HttpStatus.OK);
 	}
 	
-	public void callShellScript(String repoName) throws Exception{
-		ShellScriptUtil.executeScript("/home/mmson/gitsync/manik.magar.me/post-receive.sh");
+	public void callShellScript(String repoShellPath) throws Exception{
+		ShellScriptUtil.executeScript(repoShellPath);
 	}
 
 	public static void main(String[] args) {

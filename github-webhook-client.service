@@ -4,7 +4,7 @@ After=syslog.target
 
 [Service]
 User=nobody
-ExecStart=/svr/github-webhook-client/github-webhook-client.jar
+ExecStart=/srv/github-webhook-client/github-webhook-client.jar
 EnvironmentFile=/etc/default/github-webhook-client
 
 
